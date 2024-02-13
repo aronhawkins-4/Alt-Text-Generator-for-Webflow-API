@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "Simple Node.js + Express boilerplate project.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "nodemon index.js"
   },
   "dependencies": {
+    "axios": "^1.6.7",
+    "bops": "^1.0.1",
+    "convertapi": "^1.14.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.4",
     "express": "^4.17.1"
   },
   "author": "Omar Muscatello",
