@@ -1,46 +1,38 @@
-import "dotenv/config";
-import express, { json as _json } from "express";
-import cors from "cors";
-import axios from "axios";
-import bops from "bops";
-import sharp from "sharp";
+import 'dotenv/config';
+import express, { json as _json } from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import bops from 'bops';
+import sharp from 'sharp';
 
 const app = express();
 app.use(cors());
 app.use(_json());
 
 app.listen(3000, () => {
-  console.log("Listening on port 3000!");
+  console.log('Listening on port 3000!');
 });
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.send(new Date().toISOString());
 });
 
-app.post("/generate", async (req, res) => {
+app.post('/generate', async (req, res) => {
   console.log(req.body);
   if (!req.body) {
-    res.status(400).json({ error: "Body not specified" });
+    res.status(400).json({ error: 'Body not specified' });
     return;
   }
   if (!req.body.url) {
-    res.status(400).json({ error: "No URL specified" });
+    res.status(400).json({ error: 'No URL specified' });
     return;
   }
-  if (!req.body.url.includes("http")) {
-    res.status(400).json({ error: "Invalid URL format" });
+  if (!req.body.url.includes('http')) {
+    res.status(400).json({ error: 'Invalid URL format' });
     return;
   }
   const reqUrl = req.body.url;
-
-  // if (reqUrl.slice(-3) === "svg") {
-
-  //   convertSvg(reqUrl).then((response) => {
-  //     generate(response, res);
-  //   });
-  // } else {
   generate(reqUrl, res);
-  // }
 });
 
 async function generate(url, res) {
@@ -50,40 +42,39 @@ async function generate(url, res) {
   const png = await sharp(buffer).png().toBuffer();
   const uintArr = new Uint8Array(png);
   const regularArr = Array.from(uintArr);
-  const bopsArray = bops.from(regularArr, "utf-8");
-  // axios
-  //   .get(url, { responseType: "arraybuffer" })
-  //   .then((axiosRes) => {
-  //     const uintArr = new Uint8Array(axiosRes.data);
-  //     const regularArr = Array.from(uintArr);
-  //     const bopsArray = bops.from(regularArr, "utf-8");
-  //     return bopsArray;
-  //   })
-  // .then((array) => {
+  const bopsArray = bops.from(regularArr, 'utf-8');
+
   const apiUrl =
-    "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base";
+    'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large';
   const apiKey = process.env.HUGGINGFACE_API_KEY;
-  console.log("apiKey: " + apiKey);
+  console.log('apiKey: ' + apiKey);
   fetch(apiUrl, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
-    method: "POST",
+    method: 'POST',
     body: bopsArray,
   })
     .then((res) => {
       return res.json();
+      // return undefined;
     })
     .then((json) => {
-      if (json && json[0].generated_text) {
-        res.send(json[0].generated_text);
+      console.log(json);
+      if (json[0] && json[0].generated_text) {
+        res.send(
+          json[0].generated_text
+            .replace('arafed ', '')
+            .replace('arafed', '')
+            .replace('araffe ', '')
+        );
       } else {
-        res.status(400).json({ error: "Invalid response format" });
+        res.status(400).json({ error: 'Invalid response format' });
       }
     })
     .catch((error) => {
       console.log(error.message);
-      res.status(500).json({ error: "Server Error" });
+      res.status(500).json({ error: 'Server Error' });
     });
   // });
 }
